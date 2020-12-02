@@ -23,29 +23,32 @@ class FriendshipsController < ApplicationController
   # POST /friendships.json
   def create
     @friendship = Friendship.new(friendship_params)
-
-    respond_to do |format|
-      if @friendship.save
-        format.html { redirect_to @friendship, notice: 'Friendship was successfully created.' }
-        format.json { render :show, status: :created, location: @friendship }
-      else
-        format.html { render :new }
-        format.json { render json: @friendship.errors, status: :unprocessable_entity }
-      end
+    if new_request? && @friendship.valid? && @friendship.save
+      redirect_to users_path
+    elsif !new_request?
+      redirect_to users_path, alert: 'You have already sent a request'
+    else
+      render 'users/index'
     end
   end
+
+  
+
 
   # PATCH/PUT /friendships/1
   # PATCH/PUT /friendships/1.json
   def update
-    respond_to do |format|
-      if @friendship.update(friendship_params)
-        format.html { redirect_to @friendship, notice: 'Friendship was successfully updated.' }
-        format.json { render :show, status: :ok, location: @friendship }
-      else
-        format.html { render :edit }
-        format.json { render json: @friendship.errors, status: :unprocessable_entity }
-      end
+    @friendship = Friendship.find(params[:id])
+    redirect_to users_path if @friendship.status == false && @friendship.confirm_friend
+  end
+
+  def destroy
+    @friendship = Friendship.where(user_id: [params[:id], current_user.id], request_friend_id: [current_user.id, params[:id]])
+
+    if !@friendship.nil? && @friendship.each(&:destroy)
+      redirect_to users_path
+    else
+      render 'users/index'
     end
   end
 
@@ -60,6 +63,9 @@ class FriendshipsController < ApplicationController
   end
 
   private
+  def new_request?
+    !current_user.request_exists?(User.find_by(id: params[:friendship][:request_friend_id]))
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_friendship
