@@ -1,6 +1,6 @@
 <p id="notice"><%= notice %></p>
 
-<h1>Friendships</h1>
+<h1>List of Potential Friends </h1>
 
 <table>
   <thead>
@@ -29,3 +29,26 @@
 <br>
 
 <%= link_to 'New Friendship', new_friendship_path %>
+
+<br>
+<table>
+  <thead>
+    <tr>
+      <th>User Name</th>
+      <th>Invite</th>
+      </tr>
+  </thead>
+
+  <tbody>
+    <% User.all.each do |user| %>
+      <%  if user.id == current_user.id%>
+      <% puts '' %>
+      <% else %>
+      <tr>
+        <td><%= user.name %></td>
+        <td><%= link_to 'Invite Friend', new_friendship_path %></td>
+        </tr>
+        <%end%>
+    <% end %>
+  </tbody>
+</table>
